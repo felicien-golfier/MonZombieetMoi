@@ -1,7 +1,7 @@
 # Mon Zombie et Moi
 
 # Prérequis : 
- - Unity 5 [a link](https://unity3d.com/get-unity/download?ref=personal)
+ - Unity 5 : [link](https://unity3d.com/get-unity/download?ref=personal)
 
 # Initialisation du projet 
 
