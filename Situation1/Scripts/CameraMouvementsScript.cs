@@ -13,22 +13,20 @@ public class CameraMouvementsScript : MonoBehaviour {
 	public int n = 5; // nombre de points dont la caméra saute pour lookat
 	public int smooth = 5;
 	public float speed = 10f;
+
 	private Vector3 lastVector;
 	private Vector3 actualVector;
 	private Vector3 translateVector;
 	private bool stop = false;
 	private Vector3 lastLook;
 	private Vector3 nextLook;
-	private bool alreadyWakedUp = false;
-	private Camera camera;
+	private bool CameraMvtEnd = false;
 
 	private float tmp;
 
 	void Start () {
 
-		camera = GetComponent<Camera>();
-		camera.clearFlags = CameraClearFlags.SolidColor;
-		camera.backgroundColor = Color.gray;
+
 
 		posLength = pos.Length;
 //		resetPosition = pos [posLength - 1];
@@ -36,50 +34,45 @@ public class CameraMouvementsScript : MonoBehaviour {
 		posInterpolateLength = posInterpolate.Length;
 		this.transform.position = posInterpolate [0];
 		this.transform.LookAt(posInterpolate[n]);
-
+		nextLook = posInterpolate [k + n];
 
 	}
 	
 	// Update is called once per frame
 	void Update (){
-		cameraMouvements ();
+		if (!CameraMvtEnd){
 
+			cameraMouvements ();
 	}
+}
 
 
 	void cameraMouvements (){
 		if (!stop) {
 			translateVector = (posInterpolate [k] - this.transform.position);
-//			print ("Position: " + posInterpolate [k] + " k : "+  k + " pos: "+this.transform.position);
 			this.transform.position += (translateVector.normalized * Time.deltaTime * speed);
 
-			tmp = translateVector.magnitude;
-			tmp = tmp > 1 ? 1 : tmp;
-
-			nextLook = (posInterpolate [k + n - 1] * (tmp) + posInterpolate [k + n] * (1 - tmp));
-			
+			nextLook += (posInterpolate [k + n] - nextLook).normalized * Time.deltaTime * speed;
 			this.transform.LookAt (nextLook);
 			Debug.DrawLine (this.transform.position, posInterpolate [k], Color.red, 10f);
 
-			//			print (this.transform.position*(1-(float)k/posInterpolate.Length));
-			//			this.transform.LookAt (this.resetPosition*((float)k/posInterpolate.Length) + (this.transform.position + translateVector.normalized)*(1-(float)k/posInterpolate.Length));
-			
-			if (translateVector.magnitude < 0.1f) {
+			if (translateVector.magnitude < 0.2f) {
 				k++;
 				stop = k > (posInterpolateLength - n - 1);
 			}
 		} else if ((this.transform.position - pos [posLength - 1]).magnitude > 0.1f) {
-			GameObject.FindGameObjectWithTag(DoneTags.gameController).GetComponent<FaderScript> ().BeginFade(1,2);
+			GameObject.Find ("gameController").GetComponent<FaderScript> ().BeginFade(1,2);
 
 			translateVector = (pos [posLength - 1] - this.transform.position);
 			this.transform.position += (translateVector.normalized * Time.deltaTime * speed);
 			tmp = (this.transform.position - pos [posLength - 1]).magnitude;
 			tmp = tmp > 1 ? 1 : tmp;
+			tmp = tmp < 0 ? 0 : tmp;
 			this.transform.LookAt (resetLook * (1 - tmp) + nextLook * (tmp));
 			
-		} else if (!alreadyWakedUp) {
+		} else if (!CameraMvtEnd) {
 			GameObject.Find("char_ethan").GetComponent<WakeUpScript>().getUp();
-			alreadyWakedUp = true;
+			CameraMvtEnd = true;
 		}
 
 
